@@ -8,6 +8,8 @@ using MyAi.Application.Features.Admin;
 using MyAi.Application.Features.Admin.Commands;
 using MyAi.Application.Features.Admin.Queries;
 using MyAi.Application.Features.Avatar;
+using MyAi.Application.Features.Avatar.Commands;
+using MyAi.Application.Features.Avatar.Queries;
 
 namespace MyAi.Api.Controllers;
 
@@ -66,6 +68,12 @@ public class AdminController : ControllerBase
     [HttpGet("avatar-models")]
     public async Task<IActionResult> GetAvatarModelsAsync(CancellationToken ct) =>
         Ok(await _mediator.Send(new GetAllAvatarModelsQuery(), ct));
+
+    /// <summary>Save the GLOBAL avatar scene (camera/model/lights) — applies to all users.</summary>
+    [HttpPut("avatar-scene-config")]
+    public async Task<IActionResult> UpdateAvatarSceneConfigAsync(
+        [FromBody] Application.Features.Avatar.AvatarSceneConfigDto config, CancellationToken ct) =>
+        Ok(await _mediator.Send(new UpdateAvatarSceneConfigCommand(config), ct));
 
     [HttpPost("avatar-models")]
     public async Task<IActionResult> CreateAvatarModelAsync(

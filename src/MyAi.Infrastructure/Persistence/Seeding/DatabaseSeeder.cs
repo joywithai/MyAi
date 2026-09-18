@@ -64,7 +64,13 @@ public class DatabaseSeeder
             ["payment_provider"] = ("demo", "Active payment provider (demo|stripe|sslcommerz)"),
             ["maintenance_mode"] = ("false", "Global maintenance switch"),
             ["registration_enabled"] = ("true", "Allow new registrations"),
-            ["max_message_length"] = ("500", "Maximum chat message length in characters")
+            ["max_message_length"] = ("500", "Maximum chat message length in characters"),
+            ["avatar_scene_config"] =
+                (@"{""camera"":{""x"":0,""y"":1.35,""z"":2.1,""lookAtX"":0,""lookAtY"":1.05,""lookAtZ"":0,""fov"":30}," +
+                 @"""model"":{""x"":0,""y"":0,""z"":0,""rotationY"":0,""scale"":1}," +
+                 @"""lights"":{""hemiIntensity"":1.1,""dirX"":1.5,""dirY"":2.5,""dirZ"":2,""dirColor"":""#9b83ff"",""dirIntensity"":1.6}," +
+                 @"""canvasHeight"":430}",
+                 "Global avatar scene configuration (JSON) — edited from the admin panel")
         };
 
         foreach (var (key, (value, description)) in defaults)

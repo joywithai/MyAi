@@ -127,6 +127,29 @@ export interface AvatarModelDto {
   isActive: boolean;
 }
 
+/** Global avatar scene (admin-controlled, stored in DB, same for everyone). */
+export interface AvatarSceneConfig {
+  camera: {
+    x: number;
+    y: number;
+    z: number;
+    lookAtX: number;
+    lookAtY: number;
+    lookAtZ: number;
+    fov: number;
+  };
+  model: { x: number; y: number; z: number; rotationY: number; scale: number };
+  lights: {
+    hemiIntensity: number;
+    dirX: number;
+    dirY: number;
+    dirZ: number;
+    dirColor: string;
+    dirIntensity: number;
+  };
+  canvasHeight: number;
+}
+
 export interface ExpressionDto {
   id: string;
   name: string;

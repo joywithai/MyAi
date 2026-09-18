@@ -7,11 +7,14 @@ import { useCallback, useEffect, useState } from 'react';
 import { RequireAuth } from '@/components/layout/RequireAuth';
 import { useApp } from '@/lib/app-context';
 import { api, ApiError, qs } from '@/lib/api';
+import { AvatarViewer } from '@/components/avatar/AvatarViewer';
+import { DEFAULT_SCENE, normalizeScene } from '@/lib/avatar/defaultScene';
 import type {
   AdminUserDto,
   AnimationDto,
   AuditLogDto,
   AvatarModelDto,
+  AvatarSceneConfig,
   ExpressionDto,
   FeatureFlagsDto,
   Paged,
@@ -25,10 +28,11 @@ type Tab =
   | 'expressions'
   | 'animations'
   | 'avatars'
+  | 'avatar-scene'
   | 'settings'
   | 'audit';
 
-const TABS: Tab[] = ['users', 'flags', 'expressions', 'animations', 'avatars', 'settings', 'audit'];
+const TABS: Tab[] = ['users', 'flags', 'expressions', 'animations', 'avatars', 'avatar-scene', 'settings', 'audit'];
 
 function AdminInner() {
   const { t, locale } = useApp();
@@ -79,6 +83,46 @@ function AdminInner() {
     }
   }, [t]);
 
+  // ── Avatar scene (global, DB-backed) ───────────────────────────────────────
+  const [sceneConfig, setSceneConfig] = useState<AvatarSceneConfig>(DEFAULT_SCENE);
+  const [sceneSaved, setSceneSaved] = useState(false);
+  const [sceneBusy, setSceneBusy] = useState(false);
+
+  const loadScene = useCallback(async () => {
+    try {
+      setSceneConfig(normalizeScene(await api.get<AvatarSceneConfig>('/avatars/scene')));
+    } catch (err) {
+      notifyError(err);
+    }
+  }, [t]);
+
+  const saveScene = async () => {
+    setSceneBusy(true);
+    setError(null);
+    try {
+      const saved = await api.put<AvatarSceneConfig>('/admin/avatar-scene-config', sceneConfig);
+      setSceneConfig(normalizeScene(saved));
+      setSceneSaved(true);
+      setTimeout(() => setSceneSaved(false), 2500);
+    } catch (err) {
+      notifyError(err);
+    } finally {
+      setSceneBusy(false);
+    }
+  };
+
+  const sceneNumber = (path: string, value: number) => {
+    setSceneConfig((current) => {
+      const next = normalizeScene(current);
+      const keys = path.split('.');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let target: any = next;
+      for (let i = 0; i < keys.length - 1; i++) target = target[keys[i]];
+      target[keys[keys.length - 1]] = value;
+      return next;
+    });
+  };
+
   // ── System settings + audit ────────────────────────────────────────────────
   const [settings, setSettings] = useState<SystemSettingDto[]>([]);
   const [audit, setAudit] = useState<Paged<AuditLogDto> | null>(null);
@@ -97,8 +141,9 @@ function AdminInner() {
     if (tab === 'users') void loadUsers();
     if (tab === 'flags') void loadFlags();
     if (tab === 'expressions' || tab === 'animations' || tab === 'avatars') void loadCatalog();
+    if (tab === 'avatar-scene') void loadScene();
     if (tab === 'settings' || tab === 'audit') void loadSystem();
-  }, [tab, loadUsers, loadFlags, loadCatalog, loadSystem]);
+  }, [tab, loadUsers, loadFlags, loadCatalog, loadScene, loadSystem]);
 
   const updateSetting = async (key: string, value: string) => {
     try {
@@ -126,7 +171,11 @@ function AdminInner() {
               tab === item ? 'border-brand bg-brand-soft text-brand-strong' : 'border-line text-gray-300'
             }`}
           >
-            {t(`admin.${item === 'avatars' ? 'avatars' : item}`)}
+            {item === 'avatar-scene'
+              ? locale === 'bn'
+                ? 'অ্যাভাটার সিন'
+                : 'Avatar scene'
+              : t(`admin.${item}`)}
           </button>
         ))}
       </div>
@@ -434,6 +483,136 @@ function AdminInner() {
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {/* Avatar scene */}
+      {tab === 'avatar-scene' && (
+        <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
+          {/* Live preview */}
+          <div className="space-y-3">
+            <div className="overflow-hidden rounded-2xl border border-line bg-gradient-to-b from-surface-raised to-surface">
+              <AvatarViewer
+                modelUrl="/models/AIAssistantAvatar.vrm"
+                expression="FRIENDLY"
+                mouthOpen={0}
+                thinking={false}
+                scene={sceneConfig}
+                className="w-full"
+              />
+            </div>
+            <p className="text-xs text-muted">
+              {locale === 'bn'
+                ? '⚠️ সেভ করলে সব ইউজারের কাছে এভাবেই দেখাবে। ইউজাররা এটা বদলাতে পারবে না।'
+                : '⚠️ Saving applies this scene to every user. Users cannot change it.'}
+            </p>
+          </div>
+
+          {/* Controls */}
+          <div className="card space-y-4 text-sm">
+            <h3 className="font-semibold">📷 {locale === 'bn' ? 'ক্যামেরা' : 'Camera'}</h3>
+            <div className="grid grid-cols-3 gap-2">
+              {(['x', 'y', 'z', 'lookAtX', 'lookAtY', 'lookAtZ'] as const).map((key) => (
+                <label key={key} className="text-xs text-muted">
+                  {key}
+                  <input
+                    className="input !py-1"
+                    type="number"
+                    step={0.05}
+                    value={sceneConfig.camera[key]}
+                    onChange={(event) => sceneNumber(`camera.${key}`, Number(event.target.value))}
+                  />
+                </label>
+              ))}
+              <label className="text-xs text-muted">
+                FOV
+                <input
+                  className="input !py-1"
+                  type="number"
+                  step={1}
+                  value={sceneConfig.camera.fov}
+                  onChange={(event) => sceneNumber('camera.fov', Number(event.target.value))}
+                />
+              </label>
+            </div>
+
+            <h3 className="font-semibold">🧑‍🚀 {locale === 'bn' ? 'মডেল' : 'Model'}</h3>
+            <div className="grid grid-cols-3 gap-2">
+              {(['x', 'y', 'z', 'rotationY', 'scale'] as const).map((key) => (
+                <label key={key} className="text-xs text-muted">
+                  {key}
+                  <input
+                    className="input !py-1"
+                    type="number"
+                    step={key === 'scale' ? 0.05 : 0.05}
+                    value={sceneConfig.model[key]}
+                    onChange={(event) => sceneNumber(`model.${key}`, Number(event.target.value))}
+                  />
+                </label>
+              ))}
+            </div>
+
+            <h3 className="font-semibold">💡 {locale === 'bn' ? 'আলো' : 'Lights'}</h3>
+            <div className="grid grid-cols-3 gap-2">
+              <label className="text-xs text-muted">
+                hemi
+                <input
+                  className="input !py-1"
+                  type="number"
+                  step={0.1}
+                  value={sceneConfig.lights.hemiIntensity}
+                  onChange={(event) => sceneNumber('lights.hemiIntensity', Number(event.target.value))}
+                />
+              </label>
+              {(['dirX', 'dirY', 'dirZ', 'dirIntensity'] as const).map((key) => (
+                <label key={key} className="text-xs text-muted">
+                  {key}
+                  <input
+                    className="input !py-1"
+                    type="number"
+                    step={0.1}
+                    value={sceneConfig.lights[key]}
+                    onChange={(event) => sceneNumber(`lights.${key}`, Number(event.target.value))}
+                  />
+                </label>
+              ))}
+              <label className="text-xs text-muted">
+                dirColor
+                <input
+                  className="input !h-[34px] !py-0.5"
+                  type="color"
+                  value={sceneConfig.lights.dirColor}
+                  onChange={(event) =>
+                    setSceneConfig((current) => ({
+                      ...current,
+                      lights: { ...current.lights, dirColor: event.target.value }
+                    }))
+                  }
+                />
+              </label>
+            </div>
+
+            <label className="text-xs text-muted">
+              {locale === 'bn' ? 'ক্যানভাস উচ্চতা (px)' : 'Canvas height (px)'}
+              <input
+                className="input !py-1 !w-32"
+                type="number"
+                step={10}
+                value={sceneConfig.canvasHeight}
+                onChange={(event) => sceneNumber('canvasHeight', Number(event.target.value))}
+              />
+            </label>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button type="button" className="btn-primary" disabled={sceneBusy} onClick={() => void saveScene()}>
+                {sceneBusy ? t('common.loading') : t('settings.save')}
+              </button>
+              <button type="button" className="btn-secondary" onClick={() => setSceneConfig(DEFAULT_SCENE)}>
+                {locale === 'bn' ? 'ডিফল্টে ফেরান' : 'Reset to default'}
+              </button>
+              {sceneSaved && <span className="text-xs text-accent">{t('settings.saved')}</span>}
+            </div>
+          </div>
         </div>
       )}
 

@@ -10,6 +10,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { VRMLoaderPlugin, VRMUtils, type VRM } from '@pixiv/three-vrm';
 import { getRecipe, normalizeExpression } from '@/lib/avatar/expressionMap';
+import type { AvatarSceneConfig } from '@/lib/types';
 
 export interface AvatarViewerProps {
   modelUrl?: string | null;
@@ -20,16 +21,20 @@ export interface AvatarViewerProps {
   /** While the AI is generating, show the thinking pose */
   thinking: boolean;
   blinkEnabled?: boolean;
+  /** Admin-controlled scene (camera/model/lights). Undefined → defaults. */
+  scene?: AvatarSceneConfig;
   className?: string;
 }
 
 interface ViewerState {
-  scene: THREE.Scene;
+  sceneRoot: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
   vrm: VRM | null;
   orb: THREE.Mesh | null;
   orbLight: THREE.PointLight | null;
+  hemi: THREE.HemisphereLight;
+  dir: THREE.DirectionalLight;
   disposed: boolean;
   blinkUntil: number;
   nextBlinkAt: number;
@@ -55,20 +60,46 @@ const VRM_PRESET_ORDER = [
   'blink'
 ];
 
+/** Applies the admin scene config to camera, lights and (if loaded) the model. */
+function applyScene(state: ViewerState, config?: AvatarSceneConfig) {
+  if (!config) return;
+
+  const { camera, hemi, dir } = state;
+
+  camera.position.set(config.camera.x, config.camera.y, config.camera.z);
+  camera.fov = config.camera.fov;
+  camera.lookAt(config.camera.lookAtX, config.camera.lookAtY, config.camera.lookAtZ);
+  camera.updateProjectionMatrix();
+
+  hemi.intensity = config.lights.hemiIntensity;
+  dir.position.set(config.lights.dirX, config.lights.dirY, config.lights.dirZ);
+  dir.color.set(config.lights.dirColor);
+  dir.intensity = config.lights.dirIntensity;
+
+  if (state.vrm) {
+    state.vrm.scene.position.set(config.model.x, config.model.y, config.model.z);
+    state.vrm.scene.rotation.y = config.model.rotationY;
+    state.vrm.scene.scale.setScalar(config.model.scale);
+  }
+}
+
 export function AvatarViewer({
   modelUrl,
   expression,
   mouthOpen,
   thinking,
   blinkEnabled = true,
+  scene,
   className
 }: AvatarViewerProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const stateRef = useRef<ViewerState | null>(null);
   const [webglFailed, setWebglFailed] = useState(false);
   const propsRef = useRef({ expression, mouthOpen, thinking, blinkEnabled });
+  const sceneRef = useRef<AvatarSceneConfig | undefined>(scene);
 
   propsRef.current = { expression, mouthOpen, thinking, blinkEnabled };
+  sceneRef.current = scene;
 
   // ── Scene bootstrap ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -96,18 +127,21 @@ export function AvatarViewer({
     mount.appendChild(renderer.domElement);
 
     scene.add(new THREE.HemisphereLight(0xffffff, 0x33334d, 1.1));
+    const hemi = scene.children[scene.children.length - 1] as THREE.HemisphereLight;
 
     const directional = new THREE.DirectionalLight(0x9b83ff, 1.6);
     directional.position.set(1.5, 2.5, 2);
     scene.add(directional);
 
     const state: ViewerState = {
-      scene,
+      sceneRoot: scene,
       camera,
       renderer,
       vrm: null,
       orb: null,
       orbLight: null,
+      hemi,
+      dir: directional,
       disposed: false,
       blinkUntil: 0,
       nextBlinkAt: performance.now() + 2500,
@@ -119,6 +153,9 @@ export function AvatarViewer({
       thinkingTarget: 0
     };
     stateRef.current = state;
+
+    // Apply the admin-controlled scene (camera + lights) immediately.
+    applyScene(state, sceneRef.current);
 
     // Placeholder companion orb (shown when no VRM is loaded)
     const orbGeometry = new THREE.SphereGeometry(0.32, 48, 48);
@@ -285,7 +322,7 @@ export function AvatarViewer({
         VRMUtils.removeUnnecessaryVertices(gltf.scene);
 
         if (stateRef.current.vrm) {
-          stateRef.current.scene.remove(stateRef.current.vrm.scene);
+          stateRef.current.sceneRoot.remove(stateRef.current.vrm.scene);
           VRMUtils.deepDispose(stateRef.current.vrm.scene);
         }
 
@@ -293,8 +330,9 @@ export function AvatarViewer({
           object.frustumCulled = false;
         });
 
-        stateRef.current.scene.add(vrm.scene);
+        stateRef.current.sceneRoot.add(vrm.scene);
         stateRef.current.vrm = vrm;
+        applyScene(stateRef.current, sceneRef.current);
         console.info('[MyAi] VRM avatar loaded from', modelUrl);
       },
       undefined,
@@ -308,6 +346,11 @@ export function AvatarViewer({
       cancelled = true;
     };
   }, [modelUrl]);
+
+  // ── Live scene updates (admin panel saves → everyone sees the change) ─────
+  useEffect(() => {
+    if (stateRef.current) applyScene(stateRef.current, scene);
+  }, [scene]);
 
   if (webglFailed) {
     return (

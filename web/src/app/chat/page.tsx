@@ -14,8 +14,10 @@ import { useLipSync } from '@/hooks/useLipSync';
 import { api } from '@/lib/api';
 import { normalizeExpression } from '@/lib/avatar/expressionMap';
 import { DEFAULT_VRM_URL } from '@/lib/avatar/defaultAvatar';
+import { normalizeScene } from '@/lib/avatar/defaultScene';
 import type {
   AnimationDto,
+  AvatarSceneConfig,
   ExpressionDto,
   FeatureFlagsDto,
   Language,
@@ -33,6 +35,7 @@ export default function ChatPage() {
   const [flags, setFlags] = useState<FeatureFlagsDto | null>(null);
   const [animations, setAnimations] = useState<AnimationDto[]>([]);
   const [modelUrl, setModelUrl] = useState<string | null>(DEFAULT_VRM_URL);
+  const [sceneConfig, setSceneConfig] = useState<AvatarSceneConfig | undefined>(undefined);
   const [subtitles, setSubtitles] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -122,14 +125,18 @@ export default function ChatPage() {
     <div className="grid gap-6 py-2 lg:grid-cols-[1.05fr_1fr]">
       {/* ── Avatar side ── */}
       <section className="flex flex-col gap-4">
-        <div className="relative overflow-hidden rounded-2xl border border-line bg-gradient-to-b from-surface-raised to-surface">
+        <div
+          className="relative overflow-hidden rounded-2xl border border-line bg-gradient-to-b from-surface-raised to-surface"
+          style={{ height: sceneConfig?.canvasHeight ?? 430 }}
+        >
           <AvatarViewer
             modelUrl={modelUrl}
             expression={expression}
             mouthOpen={lipSync.mouthOpen}
             thinking={chat.typing}
             blinkEnabled={settings?.blinkEnabled ?? true}
-            className="h-[380px] w-full sm:h-[430px]"
+            scene={sceneConfig}
+            className="h-full w-full"
           />
           {settings?.showSubtitles !== false && subtitles && (
             <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-lg bg-black/70 px-3 py-1 text-sm text-white">

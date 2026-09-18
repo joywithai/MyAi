@@ -19,6 +19,12 @@ public class SystemSettingRepository : ISystemSettingRepository
     public async Task<List<SystemSetting>> GetAllAsync(CancellationToken ct = default) =>
         await _context.SystemSettings.AsNoTracking().OrderBy(s => s.Key).ToListAsync(ct);
 
+    public async Task AddAsync(SystemSetting setting, CancellationToken ct = default)
+    {
+        await _context.SystemSettings.AddAsync(setting, ct);
+        await _context.SaveChangesAsync(ct);
+    }
+
     public async Task UpdateAsync(SystemSetting setting, CancellationToken ct = default)
     {
         _context.SystemSettings.Update(setting);

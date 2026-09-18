@@ -85,6 +85,9 @@ hand.rotation.x = -0.5;        // হাত নাড়াও (wave বান�
 
 ## ৪. POSITION MAP — কে কোথায় দাঁড়িয়ে (মিটার, Y-up)
 
+> **⚡ নতুন:** নিচের সব camera/model/lights/ক্যানভাস মান এখন **Admin panel → "অ্যাভাটার সিন" ট্যাব** থেকে UI দিয়েই বদলানো যায় — সেভ করলে `SystemSetting("avatar_scene_config")` (DB)-তে জমা হয় এবং **সব ইউজারের কাছে সেভাবেই** দেখায়। ইউজাররা এটা বদলাতে পারে না (`PUT /api/v1/admin/avatar-scene-config` → admin-only 403)। API: `GET /api/v1/avatars/scene` (সবাই) / `PUT /api/v1/admin/avatar-scene-config` (শুধু admin)। কোড-লেভেল ডিফল্ট: `web/src/lib/avatar/defaultScene.ts` ⇄ `Application/Features/Avatar/Dtos/AvatarSceneConfigDto.cs`।
+
+
 ### অ্যাভাটারের ভেতরের জয়েন্টগুলোর আসল position (T-pose rest)
 
 | Joint | Position (x, y, z) |

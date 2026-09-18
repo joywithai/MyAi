@@ -26,6 +26,14 @@ public class AvatarController : ControllerBase
     public async Task<IActionResult> GetAvailableModelsAsync(CancellationToken ct) =>
         Ok(await _mediator.Send(new GetAvailableAvatarModelsQuery(), ct));
 
+    /// <summary>
+    /// Global avatar scene configuration (camera/model/lights) — admin-controlled,
+    /// identical for every user. 403/404 on failure.
+    /// </summary>
+    [HttpGet("scene")]
+    public async Task<IActionResult> GetSceneConfigAsync(CancellationToken ct) =>
+        Ok(await _mediator.Send(new GetAvatarSceneConfigQuery(), ct));
+
     /// <summary>Select the caller's avatar model (flag + role checked). 403/404 on failure.</summary>
     [HttpPut("select")]
     public async Task<IActionResult> SelectAvatarModelAsync(

@@ -4,14 +4,13 @@
 // Subscriber-locked controls render disabled with a 🔒 hint (§2.2 matrix).
 
 import { useCallback, useEffect, useState } from 'react';
-import { Activity, Bot, KeyRound, Mic, Smile, User } from 'lucide-react';
+import { Activity, KeyRound, Mic, Smile, User } from 'lucide-react';
 import { RequireAuth } from '@/components/layout/RequireAuth';
 import { useApp } from '@/lib/app-context';
 import { api, ApiError } from '@/lib/api';
 import { normalizeExpression } from '@/lib/avatar/expressionMap';
 import type {
   AnimationDto,
-  AvatarModelDto,
   CustomAiConfigDto,
   ExpressionDto,
   FeatureFlagsDto,
@@ -32,7 +31,6 @@ function SettingsInner() {
   const [flags, setFlags] = useState<FeatureFlagsDto | null>(null);
   const [expressions, setExpressions] = useState<ExpressionDto[]>([]);
   const [animations, setAnimations] = useState<AnimationDto[]>([]);
-  const [avatars, setAvatars] = useState<AvatarModelDto[]>([]);
   const [customAi, setCustomAi] = useState<CustomAiConfigDto | null>(null);
   const [apiKey, setApiKey] = useState('');
   const [preferredModel, setPreferredModel] = useState('google/gemini-2.0-flash-001:free');
@@ -59,11 +57,6 @@ function SettingsInner() {
       }
       try {
         setAnimations(await api.get<AnimationDto[]>('/animations'));
-      } catch {
-        /* noop */
-      }
-      try {
-        setAvatars(await api.get<AvatarModelDto[]>('/avatars/models'));
       } catch {
         /* noop */
       }
@@ -306,26 +299,7 @@ function SettingsInner() {
           </div>
         </section>
 
-        {/* Avatar model */}
-        <section className="card">
-          <h2 className="mb-4 font-semibold"><Bot className="mr-1 inline h-4 w-4" /> {t('settings.avatar')} {!flags.canSelectAvatarModel && '🔒'}</h2>
-          <select
-            className="input"
-            value={settings.avatarModelId ?? ''}
-            disabled={!flags.canSelectAvatarModel}
-            onChange={(event) => {
-              const value = event.target.value;
-              void patch(value ? { avatarModelId: value } : { clearAvatarModel: true });
-            }}
-          >
-            <option value="">Default</option>
-            {avatars.map((avatar) => (
-              <option key={avatar.id} value={avatar.id}>
-                {avatar.name}
-              </option>
-            ))}
-          </select>
-        </section>
+        {/* Avatar selection is admin-controlled — users cannot change it. */}
 
         {/* Custom AI key */}
         <section className="card">
