@@ -152,15 +152,15 @@ public class DatabaseSeeder
         if (!hasDefault)
         {
             var model = AvatarModel.Create(
-                "Default Avatar",
-                "/models/default-avatar.vrm",
+                "AI Assistant Avatar",
+                "/models/AIAssistantAvatar.vrm",
                 null,
                 UserRole.PublicUser);
 
-            model.SetDescription("Built-in default VRM avatar");
+            model.SetDescription("Bundled VRM 1.0 avatar (AIAssistantAvatar.vrm)");
             model.MakeDefault();
             _context.AvatarModels.Add(model);
-            _logger.LogInformation("Seeded default avatar model");
+            _logger.LogInformation("Seeded default avatar model: AIAssistantAvatar.vrm");
         }
 
         await _context.SaveChangesAsync(ct);

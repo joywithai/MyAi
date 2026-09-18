@@ -1,4 +1,5 @@
 import { normalizeExpression, getRecipe, PUBLIC_EXPRESSIONS } from '../avatar/expressionMap';
+import { DEFAULT_VRM_URL } from '../avatar/defaultAvatar';
 import { translate } from '../i18n';
 import { qs } from '../api';
 
@@ -15,6 +16,10 @@ describe('expressionMap', () => {
 
   it('maps HAPPY onto the VRM happy preset', () => {
     expect(getRecipe('HAPPY')).toEqual({ happy: 1.0 });
+  });
+
+  it('points at the bundled AIAssistantAvatar.vrm', () => {
+    expect(DEFAULT_VRM_URL).toBe('/models/AIAssistantAvatar.vrm');
   });
 });
 

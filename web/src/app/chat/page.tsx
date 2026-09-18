@@ -12,6 +12,7 @@ import { useChat } from '@/hooks/useChat';
 import { useLipSync } from '@/hooks/useLipSync';
 import { api } from '@/lib/api';
 import { normalizeExpression } from '@/lib/avatar/expressionMap';
+import { DEFAULT_VRM_URL } from '@/lib/avatar/defaultAvatar';
 import type {
   AnimationDto,
   ExpressionDto,
@@ -30,7 +31,7 @@ export default function ChatPage() {
   const [settings, setSettings] = useState<UserSettingsDto | null>(null);
   const [flags, setFlags] = useState<FeatureFlagsDto | null>(null);
   const [animations, setAnimations] = useState<AnimationDto[]>([]);
-  const [modelUrl, setModelUrl] = useState<string | null>(null);
+  const [modelUrl, setModelUrl] = useState<string | null>(DEFAULT_VRM_URL);
   const [subtitles, setSubtitles] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 

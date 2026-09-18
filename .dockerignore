@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/.next/
+**/.git/
+**/logs/
+**/*.log
+**/.env
+**/.env.local
+tests/**/TestResults/
+README.md

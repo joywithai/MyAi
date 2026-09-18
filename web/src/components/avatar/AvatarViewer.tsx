@@ -5,7 +5,7 @@
 // If the model file cannot be loaded, a glowing "companion orb" is rendered so
 // the experience still works without a .vrm asset.
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { VRMLoaderPlugin, VRMUtils, type VRM } from '@pixiv/three-vrm';
@@ -65,6 +65,7 @@ export function AvatarViewer({
 }: AvatarViewerProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const stateRef = useRef<ViewerState | null>(null);
+  const [webglFailed, setWebglFailed] = useState(false);
   const propsRef = useRef({ expression, mouthOpen, thinking, blinkEnabled });
 
   propsRef.current = { expression, mouthOpen, thinking, blinkEnabled };
@@ -76,11 +77,20 @@ export function AvatarViewer({
 
     const scene = new THREE.Scene();
 
+    let renderer: THREE.WebGLRenderer;
+
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    } catch {
+      // No WebGL available — the page still works, just without the 3D canvas.
+      setWebglFailed(true);
+      return;
+    }
+
     const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 20);
     camera.position.set(0, 1.35, 2.1);
     camera.lookAt(0, 1.05, 0);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     mount.appendChild(renderer.domElement);
@@ -285,6 +295,7 @@ export function AvatarViewer({
 
         stateRef.current.scene.add(vrm.scene);
         stateRef.current.vrm = vrm;
+        console.info('[MyAi] VRM avatar loaded from', modelUrl);
       },
       undefined,
       () => {
@@ -297,6 +308,20 @@ export function AvatarViewer({
       cancelled = true;
     };
   }, [modelUrl]);
+
+  if (webglFailed) {
+    return (
+      <div
+        className={`flex items-center justify-center bg-gradient-to-b from-surface-raised to-surface ${className ?? ''}`}
+        aria-label="Avatar (WebGL unavailable)"
+      >
+        <div className="text-center">
+          <div className="text-6xl">🧑‍🚀</div>
+          <p className="mt-2 text-xs text-muted">WebGL unavailable</p>
+        </div>
+      </div>
+    );
+  }
 
   return <div ref={mountRef} className={className} aria-label="3D avatar" />;
 }
