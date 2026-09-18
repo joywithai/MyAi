@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AvatarViewer } from '@/components/avatar/AvatarViewer';
 import { ExpressionChips } from '@/components/chat/ExpressionChips';
 import { MessageBubble } from '@/components/chat/MessageBubble';
+import { Plus, Send, Square } from 'lucide-react';
 import { useApp } from '@/lib/app-context';
 import { useChat } from '@/hooks/useChat';
 import { useLipSync } from '@/hooks/useLipSync';
@@ -231,8 +232,8 @@ export default function ChatPage() {
                   </option>
                 ))}
               </select>
-              <button type="button" onClick={chat.newConversation} className="btn-secondary !py-1 text-xs">
-                ＋
+              <button type="button" onClick={chat.newConversation} className="btn-secondary !py-1 text-xs" aria-label="New conversation">
+                <Plus className="h-3.5 w-3.5" />
               </button>
             </div>
           ) : (
@@ -290,11 +291,11 @@ export default function ChatPage() {
           />
           {chat.typing ? (
             <button type="button" className="btn-secondary" onClick={chat.stop}>
-              ■ {t('chat.stop')}
+              <Square className="h-4 w-4" /> {t('chat.stop')}
             </button>
           ) : (
             <button type="submit" className="btn-primary" disabled={!canSend}>
-              ➤ {t('chat.send')}
+              <Send className="h-4 w-4" /> {t('chat.send')}
             </button>
           )}
         </form>

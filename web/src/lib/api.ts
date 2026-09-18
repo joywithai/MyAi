@@ -1,3 +1,4 @@
+import axios, { AxiosError, type AxiosInstance } from 'axios';
 import type { ApiErrorBody } from './types';
 
 export const API_BASE_URL =
@@ -33,6 +34,12 @@ export class ApiError extends Error {
   }
 }
 
+/** Shared axios instance (README §4.2: axios as HTTP client). */
+const http: AxiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  headers: { 'Content-Type': 'application/json' }
+});
+
 let refreshingPromise: Promise<boolean> | null = null;
 
 async function tryRefresh(): Promise<boolean> {
@@ -42,16 +49,11 @@ async function tryRefresh(): Promise<boolean> {
       if (!refreshToken) return false;
 
       try {
-        const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refreshToken })
-        });
-
-        if (!response.ok) return false;
-
-        const data = await response.json();
-        setTokens(data.accessToken, data.refreshToken);
+        const response = await http.post<{ accessToken: string; refreshToken: string }>(
+          '/auth/refresh',
+          { refreshToken }
+        );
+        setTokens(response.data.accessToken, response.data.refreshToken);
         return true;
       } catch {
         return false;
@@ -77,38 +79,36 @@ async function request<T>(
 ): Promise<T> {
   const headers: Record<string, string> = {};
 
-  if (body !== undefined) headers['Content-Type'] = 'application/json';
-
-  const token = getAccessToken();
-  if (auth && token) headers.Authorization = `Bearer ${token}`;
-
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method,
-    headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
-    signal
-  });
-
-  if (response.status === 401 && auth && !retried) {
-    const refreshed = await tryRefresh();
-    if (refreshed) {
-      return request<T>(path, { method, body, auth, signal }, true);
-    }
-    clearTokens();
+  if (auth) {
+    const token = getAccessToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
   }
 
-  if (!response.ok) {
-    let errorBody: ApiErrorBody = {};
-    try {
-      errorBody = await response.json();
-    } catch {
-      /* non-JSON error */
-    }
-    throw new ApiError(response.status, errorBody);
-  }
+  try {
+    const response = await http.request<T>({
+      url: path,
+      method,
+      data: body === undefined ? undefined : JSON.stringify(body),
+      headers,
+      signal
+    });
+    return response.data === ('' as unknown as T) ? (undefined as T) : response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorBody>;
 
-  if (response.status === 204) return undefined as T;
-  return response.json();
+    if (axiosError.response?.status === 401 && auth && !retried) {
+      const refreshed = await tryRefresh();
+      if (refreshed) {
+        return request<T>(path, { method, body, auth, signal }, true);
+      }
+      clearTokens();
+    }
+
+    throw new ApiError(
+      axiosError.response?.status ?? 0,
+      axiosError.response?.data ?? {}
+    );
+  }
 }
 
 export const api = {

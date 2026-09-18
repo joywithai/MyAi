@@ -4,6 +4,7 @@
 // Subscriber-locked controls render disabled with a 🔒 hint (§2.2 matrix).
 
 import { useCallback, useEffect, useState } from 'react';
+import { Activity, Bot, KeyRound, Mic, Smile, User } from 'lucide-react';
 import { RequireAuth } from '@/components/layout/RequireAuth';
 import { useApp } from '@/lib/app-context';
 import { api, ApiError } from '@/lib/api';
@@ -109,7 +110,7 @@ function SettingsInner() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Profile */}
         <section className="card">
-          <h2 className="mb-4 font-semibold">👤 {t('settings.profile')}</h2>
+          <h2 className="mb-4 font-semibold"><User className="mr-1 inline h-4 w-4" /> {t('settings.profile')}</h2>
           <div className="space-y-3">
             <div>
               <label className="label">{t('auth.email')}</label>
@@ -163,7 +164,7 @@ function SettingsInner() {
         {/* Voice */}
         <section className="card">
           <h2 className="mb-4 font-semibold">
-            🎙 {t('settings.voice')} {!flags.canCustomizeVoice && '🔒'}
+            <Mic className="mr-1 inline h-4 w-4" /> {t('settings.voice')} {!flags.canCustomizeVoice && '🔒'}
           </h2>
           <div className="space-y-4">
             <div>
@@ -237,7 +238,7 @@ function SettingsInner() {
         {/* Expressions */}
         <section className="card">
           <h2 className="mb-4 font-semibold">
-            🎭 {t('settings.expressions')} {!flags.canAccessAllExpressions && `(${expressions.length}/12)`}
+            <Smile className="mr-1 inline h-4 w-4" /> {t('settings.expressions')} {!flags.canAccessAllExpressions && `(${expressions.length}/12)`}
           </h2>
           <div className="flex flex-wrap gap-2">
             {expressions.map((expression) => (
@@ -260,7 +261,7 @@ function SettingsInner() {
         {/* Animations */}
         <section className="card">
           <h2 className="mb-4 font-semibold">
-            🕺 {t('settings.animations')} {!flags.canAccessAllAnimations && '🔒'}
+            <Activity className="mr-1 inline h-4 w-4" /> {t('settings.animations')} {!flags.canAccessAllAnimations && '🔒'}
           </h2>
           <div className="space-y-2">
             {animations.map((animation) => {
@@ -307,7 +308,7 @@ function SettingsInner() {
 
         {/* Avatar model */}
         <section className="card">
-          <h2 className="mb-4 font-semibold">🧑‍🚀 {t('settings.avatar')} {!flags.canSelectAvatarModel && '🔒'}</h2>
+          <h2 className="mb-4 font-semibold"><Bot className="mr-1 inline h-4 w-4" /> {t('settings.avatar')} {!flags.canSelectAvatarModel && '🔒'}</h2>
           <select
             className="input"
             value={settings.avatarModelId ?? ''}
@@ -329,7 +330,7 @@ function SettingsInner() {
         {/* Custom AI key */}
         <section className="card">
           <h2 className="mb-4 font-semibold">
-            🔑 {t('settings.customAi')} {!flags.canUseCustomApiKey && '🔒'}
+            <KeyRound className="mr-1 inline h-4 w-4" /> {t('settings.customAi')} {!flags.canUseCustomApiKey && '🔒'}
           </h2>
           {flags.canUseCustomApiKey ? (
             <div className="space-y-3">

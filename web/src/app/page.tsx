@@ -1,15 +1,16 @@
 'use client';
 
 import Link from 'next/link';
+import { Bot, Brain, Volume2 } from 'lucide-react';
 import { useApp } from '@/lib/app-context';
 
 export default function LandingPage() {
   const { t, user, locale } = useApp();
 
   const features = [
-    { icon: '🧠', title: t('landing.features.ai'), description: t('landing.features.ai.desc') },
-    { icon: '🧑‍🚀', title: t('landing.features.avatar'), description: t('landing.features.avatar.desc') },
-    { icon: '🔊', title: t('landing.features.voice'), description: t('landing.features.voice.desc') }
+    { Icon: Brain, title: t('landing.features.ai'), description: t('landing.features.ai.desc') },
+    { Icon: Bot, title: t('landing.features.avatar'), description: t('landing.features.avatar.desc') },
+    { Icon: Volume2, title: t('landing.features.voice'), description: t('landing.features.voice.desc') }
   ];
 
   return (
@@ -41,7 +42,7 @@ export default function LandingPage() {
       <div className="mt-16 grid w-full gap-4 sm:grid-cols-3">
         {features.map((feature) => (
           <div key={feature.title} className="card text-left">
-            <div className="mb-3 text-3xl">{feature.icon}</div>
+            <feature.Icon className="mb-3 h-8 w-8 text-brand-strong" />
             <h3 className="mb-1 font-semibold">{feature.title}</h3>
             <p className="text-sm text-muted">{feature.description}</p>
           </div>

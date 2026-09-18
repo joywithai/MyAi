@@ -1,16 +1,21 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+// Global app state backed by Zustand (README §4.2 state management).
+// AppProvider only bootstraps persisted state on mount.
+
+import { useEffect } from 'react';
+import { create } from 'zustand';
 import { api, clearTokens, getAccessToken, setTokens } from './api';
 import type { Locale } from './i18n';
 import { translate } from './i18n';
 import type { Role, TokenResponse, UserDto } from './types';
 
-interface AppContextValue {
+interface AppStore {
   user: UserDto | null;
-  role: Role | null;
   loading: boolean;
   locale: Locale;
+  role: Role | null;
+  hydrated: boolean;
   setLocale: (locale: Locale) => void;
   t: (key: string) => string;
   login: (email: string, password: string) => Promise<void>;
@@ -19,92 +24,81 @@ interface AppContextValue {
   refreshUser: () => Promise<void>;
 }
 
-const AppContext = createContext<AppContextValue | null>(null);
+export const useAppStore = create<AppStore>()((set, get) => ({
+  user: null,
+  loading: true,
+  locale: 'bn',
+  role: null,
+  hydrated: false,
 
-export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserDto | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [locale, setLocaleState] = useState<Locale>('bn');
+  setLocale: (locale) => {
+    set({ locale });
+    window.localStorage.setItem('myai.locale', locale);
+    document.documentElement.lang = locale;
+  },
 
-  useEffect(() => {
-    const stored = window.localStorage.getItem('myai.locale');
-    if (stored === 'en' || stored === 'bn') setLocaleState(stored);
-  }, []);
+  t: (key) => translate(get().locale, key),
 
-  const setLocale = useCallback((next: Locale) => {
-    setLocaleState(next);
-    window.localStorage.setItem('myai.locale', next);
-    document.documentElement.lang = next;
-  }, []);
-
-  const t = useCallback((key: string) => translate(locale, key), [locale]);
-
-  const refreshUser = useCallback(async () => {
-    if (!getAccessToken()) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
-    try {
-      const profile = await api.get<{ user: UserDto }>('/user/profile');
-      setUser(profile.user);
-    } catch {
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void refreshUser();
-  }, [refreshUser]);
-
-  const login = useCallback(async (email: string, password: string) => {
+  login: async (email, password) => {
     const tokens = await api.postAnonymous<TokenResponse>('/auth/login', { email, password });
     setTokens(tokens.accessToken, tokens.refreshToken);
-    setUser(tokens.user);
-  }, []);
+    set({ user: tokens.user, role: tokens.user.role });
+  },
 
-  const register = useCallback(async (email: string, password: string, displayName: string) => {
+  register: async (email, password, displayName) => {
     const tokens = await api.postAnonymous<TokenResponse>('/auth/register', {
       email,
       password,
       displayName
     });
     setTokens(tokens.accessToken, tokens.refreshToken);
-    setUser(tokens.user);
-  }, []);
+    set({ user: tokens.user, role: tokens.user.role });
+  },
 
-  const logout = useCallback(() => {
+  logout: () => {
     const refreshToken = window.localStorage.getItem('myai.refreshToken');
     if (refreshToken) {
       void api.post('/auth/logout', { refreshToken }).catch(() => undefined);
     }
     clearTokens();
-    setUser(null);
-  }, []);
+    set({ user: null, role: null });
+  },
 
-  const value = useMemo<AppContextValue>(
-    () => ({
-      user,
-      role: user?.role ?? null,
-      loading,
-      locale,
-      setLocale,
-      t,
-      login,
-      register,
-      logout,
-      refreshUser
-    }),
-    [user, loading, locale, setLocale, t, login, register, logout, refreshUser]
-  );
+  refreshUser: async () => {
+    if (!getAccessToken()) {
+      set({ user: null, role: null, loading: false });
+      return;
+    }
+    try {
+      const profile = await api.get<{ user: UserDto }>('/user/profile');
+      set({ user: profile.user, role: profile.user.role, loading: false });
+    } catch {
+      set({ user: null, role: null, loading: false });
+    }
+  }
+}));
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+/** Bootstraps locale + session once on app start. */
+export function AppProvider({ children }: { children: React.ReactNode }) {
+  const refreshUser = useAppStore((state) => state.refreshUser);
+  const setLocale = useAppStore((state) => state.setLocale);
+  const hydrated = useAppStore((state) => state.hydrated);
+
+  useEffect(() => {
+    if (hydrated) return;
+    const stored = window.localStorage.getItem('myai.locale');
+    if (stored === 'en' || stored === 'bn') {
+      setLocale(stored);
+      document.documentElement.lang = stored;
+    }
+    void refreshUser();
+    useAppStore.setState({ hydrated: true });
+  }, [hydrated, refreshUser, setLocale]);
+
+  return <>{children}</>;
 }
 
-export function useApp(): AppContextValue {
-  const context = useContext(AppContext);
-  if (!context) throw new Error('useApp must be used within AppProvider');
-  return context;
+/** Same hook API as before — components don't change. */
+export function useApp(): AppStore {
+  return useAppStore();
 }

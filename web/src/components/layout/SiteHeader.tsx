@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { LogIn, LogOut, UserPlus } from 'lucide-react';
+import clsx from 'clsx';
 import { useApp } from '@/lib/app-context';
 
 export function SiteHeader() {
@@ -31,11 +33,12 @@ export function SiteHeader() {
             <Link
               key={item.href}
               href={item.href}
-              className={`rounded-lg px-3 py-1.5 text-sm transition ${
+              className={clsx(
+                'rounded-lg px-3 py-1.5 text-sm transition',
                 pathname?.startsWith(item.href)
                   ? 'bg-brand-soft text-brand-strong'
                   : 'text-gray-300 hover:bg-surface-raised'
-              }`}
+              )}
             >
               {item.label}
             </Link>
@@ -61,15 +64,15 @@ export function SiteHeader() {
               }}
               className="btn-secondary !py-1 text-xs"
             >
-              {t('nav.logout')}
+              <LogOut className="h-3.5 w-3.5" /> {t('nav.logout')}
             </button>
           ) : (
             <>
               <Link href="/login" className="btn-secondary !py-1 text-xs">
-                {t('nav.login')}
+                <LogIn className="h-3.5 w-3.5" /> {t('nav.login')}
               </Link>
               <Link href="/register" className="btn-primary !py-1 text-xs">
-                {t('nav.register')}
+                <UserPlus className="h-3.5 w-3.5" /> {t('nav.register')}
               </Link>
             </>
           )}
