@@ -93,6 +93,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
     void refreshUser();
     useAppStore.setState({ hydrated: true });
+
+    // A failed token refresh anywhere clears the session and sends the
+    // user to /login instead of leaving pages stuck on load errors.
+    const onUnauthorized = () => {
+      useAppStore.setState({ user: null, role: null, loading: false });
+    };
+    window.addEventListener('myai:unauthorized', onUnauthorized);
+    return () => window.removeEventListener('myai:unauthorized', onUnauthorized);
   }, [hydrated, refreshUser, setLocale]);
 
   return <>{children}</>;

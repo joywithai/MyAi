@@ -102,6 +102,10 @@ async function request<T>(
         return request<T>(path, { method, body, auth, signal }, true);
       }
       clearTokens();
+      // Tell the app the session is gone so guards can bounce to /login.
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('myai:unauthorized'));
+      }
     }
 
     throw new ApiError(
