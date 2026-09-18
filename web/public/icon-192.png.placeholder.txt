@@ -1,0 +1,1 @@
+Placeholder — replace with a real 192x192 PWA icon if PWA support is added.

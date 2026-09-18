@@ -1,0 +1,63 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.0.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyAi.Domain", "src\MyAi.Domain\MyAi.Domain.csproj", "{1A2B3C4D-0001-4A61-9E0B-000000000001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyAi.Application", "src\MyAi.Application\MyAi.Application.csproj", "{1A2B3C4D-0002-4A61-9E0B-000000000002}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyAi.Infrastructure", "src\MyAi.Infrastructure\MyAi.Infrastructure.csproj", "{1A2B3C4D-0003-4A61-9E0B-000000000003}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyAi.Api", "src\MyAi.Api\MyAi.Api.csproj", "{1A2B3C4D-0004-4A61-9E0B-000000000004}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyAi.Domain.Tests", "tests\MyAi.Domain.Tests\MyAi.Domain.Tests.csproj", "{2A2B3C4D-0005-4A61-9E0B-000000000005}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyAi.Application.Tests", "tests\MyAi.Application.Tests\MyAi.Application.Tests.csproj", "{2A2B3C4D-0006-4A61-9E0B-000000000006}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyAi.Infrastructure.Tests", "tests\MyAi.Infrastructure.Tests\MyAi.Infrastructure.Tests.csproj", "{2A2B3C4D-0007-4A61-9E0B-000000000007}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyAi.Api.Tests", "tests\MyAi.Api.Tests\MyAi.Api.Tests.csproj", "{2A2B3C4D-0008-4A61-9E0B-000000000008}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1A2B3C4D-0001-4A61-9E0B-000000000001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A2B3C4D-0001-4A61-9E0B-000000000001}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A2B3C4D-0001-4A61-9E0B-000000000001}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A2B3C4D-0001-4A61-9E0B-000000000001}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A2B3C4D-0002-4A61-9E0B-000000000002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A2B3C4D-0002-4A61-9E0B-000000000002}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A2B3C4D-0002-4A61-9E0B-000000000002}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A2B3C4D-0002-4A61-9E0B-000000000002}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A2B3C4D-0003-4A61-9E0B-000000000003}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A2B3C4D-0003-4A61-9E0B-000000000003}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A2B3C4D-0003-4A61-9E0B-000000000003}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A2B3C4D-0003-4A61-9E0B-000000000003}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A2B3C4D-0004-4A61-9E0B-000000000004}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A2B3C4D-0004-4A61-9E0B-000000000004}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A2B3C4D-0004-4A61-9E0B-000000000004}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A2B3C4D-0004-4A61-9E0B-000000000004}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A2B3C4D-0005-4A61-9E0B-000000000005}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A2B3C4D-0005-4A61-9E0B-000000000005}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A2B3C4D-0005-4A61-9E0B-000000000005}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A2B3C4D-0005-4A61-9E0B-000000000005}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A2B3C4D-0006-4A61-9E0B-000000000006}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A2B3C4D-0006-4A61-9E0B-000000000006}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A2B3C4D-0006-4A61-9E0B-000000000006}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A2B3C4D-0006-4A61-9E0B-000000000006}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A2B3C4D-0007-4A61-9E0B-000000000007}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A2B3C4D-0007-4A61-9E0B-000000000007}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A2B3C4D-0007-4A61-9E0B-000000000007}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A2B3C4D-0007-4A61-9E0B-000000000007}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A2B3C4D-0008-4A61-9E0B-000000000008}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A2B3C4D-0008-4A61-9E0B-000000000008}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A2B3C4D-0008-4A61-9E0B-000000000008}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A2B3C4D-0008-4A61-9E0B-000000000008}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
