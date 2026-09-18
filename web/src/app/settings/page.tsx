@@ -37,38 +37,44 @@ function SettingsInner() {
   const [displayName, setDisplayName] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
+
+  const loadAll = useCallback(async () => {
+    setLoadError(false);
+    const [settingsResult, flagsResult] = await Promise.allSettled([
+      api.get<UserSettingsDto>('/settings'),
+      api.get<FeatureFlagsDto>('/settings/feature-flags')
+    ]);
+
+    if (settingsResult.status === 'fulfilled') setSettings(settingsResult.value);
+    if (flagsResult.status === 'fulfilled') setFlags(flagsResult.value);
+
+    if (settingsResult.status === 'rejected' || flagsResult.status === 'rejected') {
+      setLoadError(true);
+      return;
+    }
+
+    // Secondary data — failures here only degrade, never block the page.
+    void api
+      .get<ExpressionDto[]>('/expressions')
+      .then(setExpressions)
+      .catch(() => undefined);
+    void api
+      .get<AnimationDto[]>('/animations')
+      .then(setAnimations)
+      .catch(() => undefined);
+    void api
+      .get<CustomAiConfigDto>('/custom-ai')
+      .then((config) => {
+        setCustomAi(config);
+        if (config.preferredModel) setPreferredModel(config.preferredModel);
+      })
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
-    void (async () => {
-      try {
-        setSettings(await api.get<UserSettingsDto>('/settings'));
-      } catch {
-        /* noop */
-      }
-      try {
-        setFlags(await api.get<FeatureFlagsDto>('/settings/feature-flags'));
-      } catch {
-        /* noop */
-      }
-      try {
-        setExpressions(await api.get<ExpressionDto[]>('/expressions'));
-      } catch {
-        /* noop */
-      }
-      try {
-        setAnimations(await api.get<AnimationDto[]>('/animations'));
-      } catch {
-        /* noop */
-      }
-      try {
-        setCustomAi(await api.get<CustomAiConfigDto>('/custom-ai'));
-        if (customAi?.preferredModel) setPreferredModel(customAi.preferredModel);
-      } catch {
-        /* noop */
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    void loadAll();
+  }, [loadAll]);
 
   const patch = useCallback(
     async (partial: Partial<UserSettingsDto> & { clearAvatarModel?: boolean }) => {
@@ -91,6 +97,18 @@ function SettingsInner() {
   };
 
   if (!settings || !flags) {
+    if (loadError) {
+      return (
+        <div className="flex flex-col items-center gap-3 py-20">
+          <p className="text-muted">
+            {locale === 'bn' ? 'সেটিংস লোড করা যায়নি।' : 'Could not load settings.'}
+          </p>
+          <button type="button" className="btn-primary" onClick={() => void loadAll()}>
+            {t('common.retry')}
+          </button>
+        </div>
+      );
+    }
     return <div className="py-20 text-center text-muted">{t('common.loading')}</div>;
   }
 
